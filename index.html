@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreyaX — 단계 기반 온보딩 프로토타입 v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FBF9FD;
+    --surface: #FFFFFF;
+    --ink: #2A2138;
+    --ink-soft: #7A7189;
+    --rose: #6C4AB6;
+    --rose-deep: #4A2E85;
+    --apricot: #8A63D2;
+    --line: #E7DFF5;
+    --ring-track: #E9E1F8;
+    --green: #3E9C6F;
+    --green-bg: #E8F5EE;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(circle at 20% 0%, #F3EEFA 0%, var(--bg) 45%);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .phone{
+    width:390px;
+    max-width:100%;
+    background:var(--surface);
+    border-radius:36px;
+    box-shadow: 0 30px 60px -20px rgba(163,70,93,0.25), 0 2px 8px rgba(58,42,51,0.06);
+    overflow:hidden;
+    position:relative;
+    min-height:760px;
+    display:flex;
+    flex-direction:column;
+    border:1px solid var(--line);
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:24px 24px 8px;
+  }
+  .back-btn{
+    width:34px;height:34px;border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--surface);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--ink-soft);
+    font-size:16px;
+    transition:opacity .2s;
+  }
+  .back-btn:disabled{opacity:0;pointer-events:none;}
+  .ring-wrap{ position:relative; width:34px; height:34px; margin-left:auto; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-track{ stroke:var(--ring-track); stroke-width:4; fill:none; }
+  .ring-fill{ stroke:var(--rose); stroke-width:4; fill:none; stroke-linecap:round; transition:stroke-dashoffset .5s ease; }
+  .ring-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:600; color:var(--rose-deep);
+  }
+  .content{
+    flex:1;
+    padding:8px 28px 28px;
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+  }
+  .eyebrow{
+    font-size:12px;
+    font-weight:600;
+    color:var(--apricot);
+    letter-spacing:0.04em;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:23px;
+    line-height:1.4;
+    font-weight:900;
+    margin:0 0 8px;
+    letter-spacing:-0.02em;
+  }
+  .subtitle{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0 0 28px;
+    line-height:1.6;
+  }
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .option{
+    text-align:left;
+    padding:16px 18px;
+    border-radius:16px;
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .option:hover{ border-color:#C9B4EC; background:#FAF8FD; }
+  .option:active{ transform:scale(0.98); }
+  .option.selected{
+    border-color:var(--rose);
+    background:linear-gradient(0deg, #F1E9FB, #F1E9FB);
+  }
+  .option-label{ font-size:15px; font-weight:600; color:var(--ink); }
+  .option-desc{ font-size:12.5px; color:var(--ink-soft); }
+  .footer-note{
+    margin-top:auto;
+    padding-top:24px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:center;
+    line-height:1.6;
+  }
+  .text-input{
+    width:100%;
+    padding:16px 18px;
+    border-radius:16px;
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    font-size:16px;
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--ink);
+    outline:none;
+  }
+  .text-input:focus{ border-color:var(--rose); }
+  /* info step */
+  .info-card{
+    padding:18px 18px;
+    border-radius:16px;
+    background:var(--green-bg);
+    border:1.5px solid #CDEBDB;
+    color:#215C40;
+    font-size:13.5px;
+    line-height:1.7;
+    margin-bottom:24px;
+  }
+  /* result screen */
+  .result{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    padding-top:12px;
+  }
+  .badge{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:999px;
+    background:#F1E9FB;
+    color:var(--rose-deep);
+    font-size:12px;
+    font-weight:600;
+    margin-bottom:18px;
+  }
+  .badge.on{ background:var(--green-bg); color:#215C40; margin-left:6px; }
+  .result h1{ font-size:21px; }
+  .result p{ font-size:13.5px; color:var(--ink-soft); line-height:1.7; margin-bottom:22px;}
+  .tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    margin-bottom:26px;
+  }
+  .tag{
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:10px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    color:var(--ink);
+  }
+  .cycle-art{ width:120px; height:120px; margin-bottom:18px; }
+  .cta{
+    width:100%;
+    padding:16px;
+    border-radius:16px;
+    border:none;
+    background: linear-gradient(135deg, var(--rose), var(--rose-deep));
+    color:white;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 12px 24px -8px rgba(163,70,93,0.5);
+  }
+  .cta:active{ transform:scale(0.98); }
+  .cta-secondary{
+    width:100%;
+    margin-top:10px;
+    padding:15px;
+    border-radius:16px;
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .cta-secondary:active{ transform:scale(0.98); }
+  .restart{
+    margin-top:14px;
+    background:none;border:none;
+    color:var(--ink-soft);
+    font-size:12.5px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  /* settings sheet (5.2 / 5.3 demo) */
+  .sheet-overlay{
+    position:absolute; inset:0;
+    background:rgba(42,33,56,0.4);
+    display:flex; align-items:flex-end;
+    z-index:30;
+  }
+  .sheet{
+    width:100%;
+    max-height:88%;
+    overflow-y:auto;
+    background:var(--surface);
+    border-radius:26px 26px 0 0;
+    padding:22px 24px 26px;
+    box-shadow: 0 -10px 30px rgba(42,33,56,0.15);
+  }
+  .sheet-handle{
+    width:36px; height:4px; border-radius:2px;
+    background:var(--line);
+    margin:0 auto 16px;
+  }
+  .sheet h2{
+    font-size:17px; font-weight:900; margin:0 0 6px;
+  }
+  .sheet .sheet-note{
+    font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:16px;
+  }
+  .sheet-section-title{
+    font-size:12px; font-weight:700; color:var(--apricot); margin:18px 0 8px;
+  }
+  .toggle-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px;
+    border-radius:16px;
+    border:1.5px solid var(--line);
+    margin-bottom:6px;
+  }
+  .toggle-row-text{ display:flex; flex-direction:column; gap:2px; text-align:left; }
+  .toggle-row-title{ font-size:14px; font-weight:600; }
+  .toggle-row-desc{ font-size:11.5px; color:var(--ink-soft); }
+  .switch{ position:relative; width:44px; height:26px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{
+    position:absolute; cursor:pointer; inset:0;
+    background:#DCD3EE; border-radius:999px; transition:.2s;
+  }
+  .slider:before{
+    content:""; position:absolute; height:20px; width:20px; left:3px; top:3px;
+    background:white; border-radius:50%; transition:.2s;
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+  }
+  .switch input:checked + .slider{ background:var(--rose); }
+  .switch input:checked + .slider:before{ transform:translateX(18px); }
+  .toast{
+    position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
+    background:var(--rose-deep); color:white; font-size:12.5px;
+    padding:10px 18px; border-radius:999px; z-index:40;
+    box-shadow:0 10px 20px rgba(74,46,133,0.35);
+    white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div class="topbar">
+    <button class="back-btn" id="backBtn">←</button>
+    <div class="ring-wrap">
+      <svg width="34" height="34">
+        <circle class="ring-track" cx="17" cy="17" r="14"></circle>
+        <circle class="ring-fill" id="ringFill" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="88"></circle>
+      </svg>
+      <div class="ring-label" id="ringLabel">1/6</div>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   5.1 여정 기반 온보딩: "목표 분기형" 대신 "현재 임신 준비 단계" 선택
+        (A 자연임신 / B1 IUI / B2 IVF) → 공통 질문으로 식단(C) 트랙 진입 여부 확인
+   5.2 단계 전환 지원: 설정 시트에서 언제든 단계 재선택 가능,
+        기록(히스토리)은 유지한 채 알림/체크리스트 로직만 전환
+   5.3 식단(C) 트랙: 별도 세그먼트가 아닌 A/B1/B2 공통 애드온 트랙,
+        선택한 단계에 맞춰 콘텐츠가 자동 조정됨
+------------------------------------------------------------------- */
+
+const answers = {
+  nickname:null, discover:null, self_awareness:null, priority:null, help_style:null,
+  stage:null,        // 'A' | 'B1' | 'B2'
+  dietTrack:null,    // 'yes' | 'no'  (C 트랙 애드온 활성화 여부)
+  cycle_regular:null, clinic_visit:null, medication:null,
+  b1:null, b2:null, b3:null, b4:null, b5:null, b6:null, b7:null, b8:null,
+  d1:null, d2:null, d3:null, d4:null, d5:null,
+  age:null, device:null
+};
+
+const bufferSteps = [
+  {
+    key:'nickname',
+    type:'text',
+    eyebrow:'시작하기 전에',
+    title:'어떻게 불러드리면 좋을까요?',
+    subtitle:'앞으로 이 이름으로 다정하게 안내해드릴게요',
+    placeholder:'닉네임을 입력해주세요'
+  },
+  {
+    key:'discover',
+    eyebrow:'시작하기 전에',
+    title:'FreyaX를 만나게 된 계기가 궁금해요',
+    subtitle:'',
+    options:[
+      {value:'referral', label:'지인 추천으로 알게 됐어요', desc:''},
+      {value:'sns_ad', label:'SNS·광고를 보고 왔어요', desc:''},
+      {value:'clinic_referral', label:'병원·전문가 추천이었어요', desc:''},
+      {value:'self_search', label:'스스로 찾아봤어요', desc:''}
+    ]
+  },
+  {
+    key:'self_awareness',
+    eyebrow:'시작하기 전에',
+    title:'요즘 내 몸 상태에 대해 얼마나 알고 있다고 느끼시나요?',
+    subtitle:'정답은 없어요, 편하게 골라주세요',
+    options:[
+      {value:'know_well', label:'잘 알고 있어요', desc:''},
+      {value:'know_some', label:'어느 정도는 알아요', desc:''},
+      {value:'know_little', label:'잘 모르겠어요', desc:''}
+    ]
+  },
+  {
+    key:'priority',
+    eyebrow:'시작하기 전에',
+    title:'건강 관리는 지금 삶에서 어느 정도 우선순위인가요?',
+    subtitle:'',
+    options:[
+      {value:'top', label:'최우선순위예요', desc:''},
+      {value:'important_busy', label:'중요하지만 여유가 없어요', desc:''},
+      {value:'priority_low', label:'아직은 우선순위가 아니에요', desc:''}
+    ]
+  },
+  {
+    key:'help_style',
+    eyebrow:'시작하기 전에',
+    title:'어떤 방식의 도움이 더 편하신가요?',
+    subtitle:'FreyaX 서비스가 {{nickname}}이 원하는 톤으로 제공해볼게요.',
+    options:[
+      {value:'data_first', label:'데이터와 정보 위주로요', desc:''},
+      {value:'warm_first', label:'다정한 응원과 리마인드로요', desc:''},
+      {value:'balanced', label:'둘 다 균형있게요', desc:''}
+    ]
+  }
+];
+
+// --- 5.1 : 단계 선택 (분기가 아닌 "현재 임신 준비 단계") ---
+const stageStep = {
+  key:'stage',
+  eyebrow:'맞춤 설정',
+  title:'현재 임신 준비 단계를 알려주세요',
+  subtitle:'지금 단계에 꼭 필요한 질문만 이어서 드릴게요',
+  options:[
+    {value:'A', label:'자연임신을 시도하고 있어요', desc:'배란일 예측, 컨디션 기록 중심으로 안내해요'},
+    {value:'B1', label:'IUI(인공수정)를 준비/진행 중이에요', desc:'배란유도제 일정과 시술 타이밍 알림을 챙겨드려요'},
+    {value:'B2', label:'IVF(체외수정)를 준비/진행 중이에요', desc:'전 주기 관리와 다수 약물 알림을 함께 챙겨드려요'}
+  ]
+};
+
+// --- 5.1 : 공통 질문으로 식단(C) 트랙 진입 여부 확인 ---
+const dietOptInStep = {
+  key:'dietTrack',
+  eyebrow:'공통 질문',
+  title:'식단 관리도 함께 하고 싶으신가요?',
+  subtitle:'선택하신 단계에 맞춰 식단 콘텐츠를 자동으로 조정해드려요. 설정에서 언제든 켜고 끌 수 있어요',
+  options:[
+    {value:'yes', label:'네, 식단 트랙도 함께 시작할게요', desc:'엽산·철분 등 단계별 영양 가이드를 추가로 받아요'},
+    {value:'no', label:'아니요, 지금은 필요 없어요', desc:'나중에 설정에서 언제든 켤 수 있어요'}
+  ]
+};
+
+const sharedPreSteps = [
+  {
+    key:'cycle_regular',
+    eyebrow:'공통 질문',
+    title:'최근 생리주기가 규칙적인가요?',
+    subtitle:'모든 회원께 동일하게 여쭤보는 기본 건강 지표예요',
+    options:[
+      {value:'regular', label:'규칙적이에요', desc:''},
+      {value:'slightly_irregular', label:'약간 불규칙해요', desc:''},
+      {value:'very_irregular', label:'매우 불규칙해요', desc:''},
+      {value:'na', label:'해당 없어요', desc:''}
+    ]
+  },
+  {
+    key:'clinic_visit',
+    eyebrow:'공통 질문',
+    title:'현재 산부인과 진료를 받고 계신가요?',
+    subtitle:'',
+    options:[
+      {value:'regular_checkup', label:'정기검진을 받고 있어요', desc:''},
+      {value:'as_needed', label:'필요할 때만 가요', desc:''},
+      {value:'none', label:'받지 않고 있어요', desc:''}
+    ]
+  },
+  {
+    key:'medication',
+    eyebrow:'공통 질문',
+    title:'현재 복용 중인 약물이나 영양제가 있으신가요?',
+    subtitle:'',
+    options:[
+      {value:'med_none', label:'없어요', desc:''},
+      {value:'med_supplement', label:'영양제만 복용해요', desc:''},
+      {value:'med_prescription', label:'처방약을 복용해요', desc:''},
+      {value:'med_both', label:'둘 다 복용해요', desc:''}
+    ]
+  }
+];
+
+// --- 단계(A/B1/B2)별 세부 질문 : 각 세그먼트 니즈에 맞춰 차별화 ---
+const branchQuestions = {
+  A: [
+    {
+      key:'b1', eyebrow:'자연임신 (A)',
+      title:'이전에 임신·출산 경험이 있으신가요?',
+      subtitle:'경험에 따라 알려드리는 정보가 달라져요',
+      options:[
+        {value:'natural_prev', label:'네, 자연임신으로 낳았어요', desc:'이전 임신 경험을 바탕으로 리듬을 예측해요'},
+        {value:'procedure_prev', label:'네, 시술로 낳았어요', desc:'과거 시술 이력을 함께 참고할게요'},
+        {value:'first', label:'이번이 처음이에요', desc:'첫 임신 시도부터 함께해요'}
+      ]
+    },
+    {
+      key:'b2', eyebrow:'자연임신 (A)',
+      title:'현재 자녀가 몇 명인가요?',
+      subtitle:'',
+      options:[
+        {value:'child_1', label:'1명', desc:'둘째를 준비 중이시군요'},
+        {value:'child_2', label:'2명', desc:'셋째를 준비 중이시군요'},
+        {value:'child_3plus', label:'3명 이상', desc:''}
+      ]
+    },
+    {
+      key:'b3', eyebrow:'자연임신 (A)',
+      title:'막내 출산 후 얼마나 지나셨나요?',
+      subtitle:'터울에 맞춰 컨디션 정보를 조정해요',
+      options:[
+        {value:'within_1y', label:'1년 이내', desc:''},
+        {value:'1to2y', label:'1~2년', desc:''},
+        {value:'2to3y', label:'2~3년', desc:''},
+        {value:'3y_plus', label:'3년 이상', desc:''}
+      ]
+    },
+    {
+      key:'b4', eyebrow:'자연임신 (A)',
+      title:'임신을 시도한 지 얼마나 되셨나요?',
+      subtitle:'시도 기간에 맞춰 배란 예측 정밀도를 조정해요',
+      options:[
+        {value:'0-3', label:'3개월 이내', desc:'이제 막 시작했어요'},
+        {value:'3-6', label:'3~6개월째', desc:''},
+        {value:'6-12', label:'6개월~1년째', desc:''},
+        {value:'12+', label:'1년 이상', desc:'조금 더 세심한 케어가 필요할 수 있어요'}
+      ]
+    },
+    {
+      key:'b5', eyebrow:'자연임신 (A)',
+      title:'배란일을 어떤 방법으로 확인하고 계신가요?',
+      subtitle:'',
+      options:[
+        {value:'basal_temp', label:'기초체온을 재요', desc:''},
+        {value:'ovul_kit', label:'배란테스트기를 써요', desc:''},
+        {value:'app_track', label:'앱으로 기록해요', desc:'기존 데이터를 이어서 활용할 수 있어요'},
+        {value:'none_method', label:'특별히 확인 안 해요', desc:'기초부터 차근차근 안내해드려요'}
+      ]
+    },
+    {
+      key:'b6', eyebrow:'자연임신 (A)',
+      title:'생리 주기는 보통 며칠인가요?',
+      subtitle:'',
+      options:[
+        {value:'cycle_21to25', label:'21~25일', desc:''},
+        {value:'cycle_26to30', label:'26~30일', desc:''},
+        {value:'cycle_31plus', label:'31일 이상', desc:''},
+        {value:'cycle_irregular', label:'주기가 불규칙해요', desc:''}
+      ]
+    },
+    {
+      key:'b7', eyebrow:'자연임신 (A)',
+      title:'파트너(배우자)의 건강 검진을 함께 받아보셨나요?',
+      subtitle:'',
+      options:[
+        {value:'partner_checked_together', label:'네, 함께 받았어요', desc:''},
+        {value:'partner_alone_checked', label:'저만 받았어요', desc:''},
+        {value:'partner_not_yet', label:'아직 안 받았어요', desc:''}
+      ]
+    },
+    {
+      key:'b8', eyebrow:'자연임신 (A)',
+      title:'스트레스가 임신 시도에 영향을 준다고 느끼시나요?',
+      subtitle:'',
+      options:[
+        {value:'stress_much', label:'많이 느껴요', desc:''},
+        {value:'stress_some', label:'조금 느껴요', desc:''},
+        {value:'stress_little', label:'거의 못 느껴요', desc:''}
+      ]
+    }
+  ],
+  B1: [
+    {
+      key:'b1', eyebrow:'IUI 준비 (B1)',
+      title:'현재 어느 단계에 계신가요?',
+      subtitle:'',
+      options:[
+        {value:'iui_consult', label:'상담·검사 단계예요', desc:''},
+        {value:'iui_inducing', label:'배란 유도제를 투여 중이에요', desc:'투여 일정 알림을 준비할게요'},
+        {value:'iui_scheduled', label:'시술 일정이 잡혔어요', desc:''},
+        {value:'iui_experienced', label:'인공수정 경험이 있어요', desc:'이전 시도 데이터를 참고할게요'}
+      ]
+    },
+    {
+      key:'b2', eyebrow:'IUI 준비 (B1)',
+      title:'배란 유도제 투여 일정이 있으신가요?',
+      subtitle:'투여 시간에 맞춰 알림을 준비할게요',
+      options:[
+        {value:'iui_med_now', label:'투여 중이에요', desc:'투여 시간 알림을 보내드려요'},
+        {value:'iui_med_soon', label:'곧 시작할 예정이에요', desc:''},
+        {value:'iui_med_none', label:'아직 처방받지 않았어요', desc:''}
+      ]
+    },
+    {
+      key:'b3', eyebrow:'IUI 준비 (B1)',
+      title:'병원 방문 주기는 어떻게 되나요?',
+      subtitle:'',
+      options:[
+        {value:'weekly_plus', label:'주 1회 이상', desc:''},
+        {value:'biweekly', label:'2주에 1회', desc:''},
+        {value:'monthly', label:'한 달에 1회', desc:''},
+        {value:'irregular_visit', label:'비정기적이에요', desc:''}
+      ]
+    },
+    {
+      key:'b4', eyebrow:'IUI 준비 (B1)',
+      title:'이전 인공수정 시도 횟수는 몇 회인가요?',
+      subtitle:'',
+      options:[
+        {value:'first_try', label:'처음이에요', desc:''},
+        {value:'1to2', label:'1~2회', desc:''},
+        {value:'3plus', label:'3회 이상', desc:''},
+        {value:'na_prev', label:'해당 없어요', desc:''}
+      ]
+    },
+    {
+      key:'b5', eyebrow:'IUI 준비 (B1)',
+      title:'시술 타이밍(배란일) 알림, 오차 허용도는 어느 정도인가요?',
+      subtitle:'자연임신 대비 일정이 촘촘해 오차 허용도가 낮은 경우가 많아요',
+      options:[
+        {value:'timing_tight', label:'거의 오차 없이 알려주세요', desc:''},
+        {value:'timing_normal', label:'조금의 오차는 괜찮아요', desc:''},
+        {value:'timing_flex', label:'여유있게 알려주셔도 돼요', desc:''}
+      ]
+    },
+    {
+      key:'b6', eyebrow:'IUI 준비 (B1)',
+      title:'파트너와 함께 건강 데이터를 공유하고 싶으신가요?',
+      subtitle:'FreyaX는 둘이 함께 쓰는 밴드를 지원해요',
+      options:[
+        {value:'together', label:'네, 함께 관리하고 싶어요', desc:'파트너 계정 연결을 추천해드려요'},
+        {value:'alone', label:'저 혼자 관리할래요', desc:''},
+        {value:'undecided', label:'아직 고민 중이에요', desc:''}
+      ]
+    },
+    {
+      key:'b7', eyebrow:'IUI 준비 (B1)',
+      title:'현재 이용 중인 병원 유형은 어디인가요?',
+      subtitle:'',
+      options:[
+        {value:'large_center', label:'대형 난임센터', desc:''},
+        {value:'private_ob', label:'개인 산부인과', desc:''},
+        {value:'oriental_combo', label:'한방병원 병행', desc:''},
+        {value:'other_clinic', label:'기타', desc:''}
+      ]
+    },
+    {
+      key:'b8', eyebrow:'IUI 준비 (B1)',
+      title:'시술 과정에서 가장 힘든 부분은 무엇인가요?',
+      subtitle:'',
+      options:[
+        {value:'burden_physical', label:'신체적 부담', desc:''},
+        {value:'burden_emotional', label:'정서적 스트레스', desc:''},
+        {value:'burden_financial', label:'경제적 부담', desc:''},
+        {value:'burden_time', label:'시간 관리', desc:''}
+      ]
+    }
+  ],
+  B2: [
+    {
+      key:'b1', eyebrow:'IVF 준비 (B2)',
+      title:'현재 어느 단계에 계신가요?',
+      subtitle:'',
+      options:[
+        {value:'ivf_consult', label:'상담·검사 단계예요', desc:''},
+        {value:'ivf_stimulation', label:'과배란 유도 중이에요', desc:'다수 약물 알림을 준비할게요'},
+        {value:'ivf_retrieval_transfer', label:'채취 또는 이식 단계예요', desc:''},
+        {value:'ivf_experienced', label:'반복 시술 경험이 있어요', desc:'정서적 지지 콘텐츠를 우선 안내해요'}
+      ]
+    },
+    {
+      key:'b2', eyebrow:'IVF 준비 (B2)',
+      title:'다수의 약물(주사 등)을 투여 중이신가요?',
+      subtitle:'약물별로 알림을 따로 챙겨드릴게요',
+      options:[
+        {value:'ivf_med_multi', label:'네, 여러 약물을 함께 투여해요', desc:'약물별 알림을 따로 보내드려요'},
+        {value:'ivf_med_soon', label:'곧 시작할 예정이에요', desc:''},
+        {value:'ivf_med_none', label:'아직이에요', desc:''}
+      ]
+    },
+    {
+      key:'b3', eyebrow:'IVF 준비 (B2)',
+      title:'병원 방문 빈도는 어떻게 되나요?',
+      subtitle:'IVF는 전 주기 관리로 방문 빈도가 높은 편이에요',
+      options:[
+        {value:'twice_weekly_plus', label:'주 2회 이상', desc:''},
+        {value:'weekly_plus', label:'주 1회', desc:''},
+        {value:'biweekly', label:'2주에 1회', desc:''},
+        {value:'irregular_visit', label:'비정기적이에요', desc:''}
+      ]
+    },
+    {
+      key:'b4', eyebrow:'IVF 준비 (B2)',
+      title:'이전 IVF 시도 횟수는 몇 회인가요?',
+      subtitle:'',
+      options:[
+        {value:'first_try', label:'처음이에요', desc:''},
+        {value:'1to2', label:'1~2회', desc:''},
+        {value:'3plus', label:'3회 이상', desc:'반복 시술자를 위한 정서 케어 콘텐츠를 준비할게요'},
+        {value:'na_prev', label:'해당 없어요', desc:''}
+      ]
+    },
+    {
+      key:'b5', eyebrow:'IVF 준비 (B2)',
+      title:'호르몬 수치를 얼마나 자세히 기록하고 싶으신가요?',
+      subtitle:'',
+      options:[
+        {value:'hormone_detail', label:'수치까지 상세히 기록하고 싶어요', desc:''},
+        {value:'hormone_simple', label:'간단한 메모 정도면 돼요', desc:''},
+        {value:'hormone_skip', label:'기록은 병원에 맡길게요', desc:''}
+      ]
+    },
+    {
+      key:'b6', eyebrow:'IVF 준비 (B2)',
+      title:'파트너와 함께 건강 데이터를 공유하고 싶으신가요?',
+      subtitle:'FreyaX는 둘이 함께 쓰는 밴드를 지원해요',
+      options:[
+        {value:'together', label:'네, 함께 관리하고 싶어요', desc:'파트너 계정 연결을 추천해드려요'},
+        {value:'alone', label:'저 혼자 관리할래요', desc:''},
+        {value:'undecided', label:'아직 고민 중이에요', desc:''}
+      ]
+    },
+    {
+      key:'b7', eyebrow:'IVF 준비 (B2)',
+      title:'현재 이용 중인 병원 유형은 어디인가요?',
+      subtitle:'',
+      options:[
+        {value:'large_center', label:'대형 난임센터', desc:''},
+        {value:'private_ob', label:'개인 산부인과', desc:''},
+        {value:'oriental_combo', label:'한방병원 병행', desc:''},
+        {value:'other_clinic', label:'기타', desc:''}
+      ]
+    },
+    {
+      key:'b8', eyebrow:'IVF 준비 (B2)',
+      title:'지금 가장 필요한 정서적 지지 수준은 어느 정도인가요?',
+      subtitle:'4단계 중 정서적 지지의 중요도가 가장 높은 구간이에요',
+      options:[
+        {value:'support_high', label:'전문 상담 연계가 필요해요', desc:''},
+        {value:'support_mid', label:'같은 경험을 나눌 커뮤니티면 충분해요', desc:''},
+        {value:'support_low', label:'지금은 크게 필요 없어요', desc:''}
+      ]
+    }
+  ]
+};
+
+// --- 5.3 : 식단(C) 트랙 안내 메시지 — 선택한 단계에 맞춰 자동 조정됨을 보여주는 인포 스텝 ---
+const dietIntroMessage = {
+  A:  '자연임신 준비 단계에 맞춰, 엽산·철분 등 임신 준비 기본 영양소 중심으로 콘텐츠를 보여드릴게요.',
+  B1: 'IUI 준비 일정에 맞춰, 배란 유도제 투여 시기에 권장되는 영양소 중심으로 콘텐츠를 필터링할게요.',
+  B2: 'IVF 과배란 유도 시기에 맞춰, 해당 시기에 권장되는 영양소와 약물 상호작용 주의사항 중심으로 콘텐츠를 필터링할게요.'
+};
+
+function dietIntroStep(stage){
+  return {
+    key:'dietIntro',
+    type:'info',
+    eyebrow:'식단 트랙 (C) · 공통 애드온',
+    title:'단계에 맞춰 식단 콘텐츠를 자동으로 조정할게요',
+    subtitle:'',
+    info: dietIntroMessage[stage] || dietIntroMessage.A
+  };
+}
+
+// --- 5.3 : 식단(C) 트랙 세부 질문 — A/B1/B2 공통, 별도 세그먼트가 아닌 애드온 ---
+const dietBranch = [
+  {
+    key:'d1', eyebrow:'식단 트랙 (C)',
+    title:'식단·체중 관리가 필요한 이유는 무엇인가요?',
+    subtitle:'',
+    options:[
+      {value:'pre_pregnancy', label:'임신 준비를 위한 체중 조절', desc:''},
+      {value:'pcos', label:'다낭성난소증후군(PCOS) 등 호르몬 관리', desc:''},
+      {value:'general', label:'전반적인 건강 습관 개선', desc:''}
+    ]
+  },
+  {
+    key:'d2', eyebrow:'식단 트랙 (C)',
+    title:'평소 식단을 기록해보신 적 있나요?',
+    subtitle:'',
+    options:[
+      {value:'log_daily', label:'매일 기록해요', desc:''},
+      {value:'log_sometimes', label:'가끔 기록해요', desc:''},
+      {value:'log_never', label:'기록해본 적 없어요', desc:'쉬운 기록 방법부터 안내해드려요'}
+    ]
+  },
+  {
+    key:'d3', eyebrow:'식단 트랙 (C)',
+    title:'카페인·당류 등 특정 식품을 제한하고 계신가요?',
+    subtitle:'',
+    options:[
+      {value:'restrict_full', label:'제한하고 있어요', desc:''},
+      {value:'restrict_partial', label:'일부만 제한해요', desc:''},
+      {value:'restrict_none', label:'제한하지 않아요', desc:''}
+    ]
+  },
+  {
+    key:'d4', eyebrow:'식단 트랙 (C)',
+    title:'영양제(엽산, 철분 등)를 복용 중이신가요?',
+    subtitle:'',
+    options:[
+      {value:'supp_taking', label:'복용 중이에요', desc:''},
+      {value:'supp_planned', label:'복용 예정이에요', desc:''},
+      {value:'supp_none', label:'복용하지 않아요', desc:''}
+    ]
+  },
+  {
+    key:'d5', eyebrow:'식단 트랙 (C)',
+    title:'평소 수분 섭취량은 어느 정도인가요?',
+    subtitle:'',
+    options:[
+      {value:'water_under1l', label:'1L 미만', desc:''},
+      {value:'water_1to1_5l', label:'1~1.5L', desc:''},
+      {value:'water_1_5to2l', label:'1.5~2L', desc:''},
+      {value:'water_over2l', label:'2L 이상', desc:''}
+    ]
+  }
+];
+
+const commonSteps = [
+  {
+    key:'age',
+    eyebrow:'마지막 공통 질문',
+    title:'연령대를 알려주세요',
+    subtitle:'',
+    options:[
+      {value:'20s', label:'20대', desc:''},
+      {value:'early30s', label:'30대 초반', desc:''},
+      {value:'late30s', label:'30대 후반', desc:''},
+      {value:'40plus', label:'40대 이상', desc:''}
+    ]
+  },
+  {
+    key:'device',
+    eyebrow:'마지막 공통 질문',
+    title:'손목 밴드형 기기를 함께 써보실 의향이 있으신가요?',
+    subtitle:'체온·심박 데이터를 자동으로 기록해주는 선택 기능이에요. 기기 없이 앱만으로도 핵심 기능을 모두 이용할 수 있어요',
+    options:[
+      {value:'device_now', label:'네, 바로 사용해볼게요', desc:''},
+      {value:'app_first', label:'앱부터 먼저 써볼래요', desc:''},
+      {value:'no_device', label:'기기는 필요 없어요', desc:''}
+    ]
+  }
+];
+
+const stageMeta = {
+  A: {
+    badge:'자연임신 준비 (A)',
+    title:'자연임신 리듬에 맞춘 케어를 시작해요',
+    desc:'배란일 예측과 컨디션 기록을 중심으로, 이전 임신 경험까지 함께 고려한 맞춤 정보를 보여드릴게요.'
+  },
+  B1: {
+    badge:'IUI 준비 여정 (B1)',
+    title:'IUI 일정에 맞춘 케어를 시작해요',
+    desc:'배란 유도제 투여 일정과 시술 타이밍 알림을 중심으로, 병원 방문 스케줄까지 함께 챙겨드릴게요.'
+  },
+  B2: {
+    badge:'IVF 준비 여정 (B2)',
+    title:'IVF 전 주기에 맞춘 케어를 시작해요',
+    desc:'과배란 유도부터 채취·이식까지 전 주기 관리와 다수 약물 알림, 정서적 지지 콘텐츠를 함께 준비할게요.'
+  }
+};
+
+const tagLabel = {
+  // buffer steps
+  referral:'지인 추천', sns_ad:'SNS·광고 유입', clinic_referral:'병원 추천', self_search:'자발적 탐색',
+  know_well:'자기 인지 높음', know_some:'자기 인지 보통', know_little:'자기 인지 낮음',
+  top:'건강관리 최우선', important_busy:'중요하나 여유없음', priority_low:'우선순위 낮음',
+  data_first:'데이터 선호', warm_first:'다정한 톤 선호', balanced:'균형있는 톤 선호',
+  // diet opt-in
+  yes:'식단 트랙 ON', no:'식단 트랙 OFF',
+  // shared pre-steps
+  regular:'주기 규칙적', slightly_irregular:'주기 약간 불규칙', very_irregular:'주기 매우 불규칙', na:'해당 없음',
+  regular_checkup:'정기검진 중', as_needed:'필요시 진료', none:'진료 안 받음',
+  med_none:'복용 없음', med_supplement:'영양제 복용', med_prescription:'처방약 복용', med_both:'영양제+처방약',
+  // A (자연임신)
+  natural_prev:'자연임신 경험', procedure_prev:'시술 경험 有', first:'첫 임신 시도',
+  child_1:'자녀 1명(둘째 준비)', child_2:'자녀 2명(셋째 준비)', child_3plus:'자녀 3명 이상',
+  within_1y:'터울 1년 이내', '1to2y':'터울 1~2년', '2to3y':'터울 2~3년', '3y_plus':'터울 3년 이상',
+  '0-3':'시도 3개월↓', '3-6':'시도 3~6개월', '6-12':'시도 6개월~1년', '12+':'시도 1년+',
+  basal_temp:'기초체온 측정', ovul_kit:'배란테스트기 사용', app_track:'앱으로 주기 기록', none_method:'배란 확인 안 함',
+  cycle_21to25:'주기 21~25일', cycle_26to30:'주기 26~30일', cycle_31plus:'주기 31일+', cycle_irregular:'주기 불규칙',
+  partner_checked_together:'부부 동반 검진', partner_alone_checked:'본인만 검진', partner_not_yet:'검진 전',
+  stress_much:'스트레스 높음', stress_some:'스트레스 보통', stress_little:'스트레스 낮음',
+  // B1 (IUI)
+  iui_consult:'상담·검사 단계', iui_inducing:'배란유도제 투여중', iui_scheduled:'시술일정 확정', iui_experienced:'IUI 경험자',
+  iui_med_now:'유도제 투여중', iui_med_soon:'유도제 투여예정', iui_med_none:'유도제 처방전',
+  timing_tight:'오차 허용도 낮음', timing_normal:'오차 허용도 보통', timing_flex:'오차 허용도 높음',
+  // B2 (IVF)
+  ivf_consult:'상담·검사 단계', ivf_stimulation:'과배란 유도중', ivf_retrieval_transfer:'채취·이식 단계', ivf_experienced:'반복시술 경험자',
+  ivf_med_multi:'다수 약물 투여중', ivf_med_soon:'약물 투여예정', ivf_med_none:'약물 투여전',
+  twice_weekly_plus:'주2회+ 병원방문', hormone_detail:'호르몬 상세기록', hormone_simple:'호르몬 간단메모', hormone_skip:'호르몬 기록안함',
+  support_high:'전문상담 필요', support_mid:'커뮤니티면 충분', support_low:'정서지지 낮은필요',
+  // B1/B2 공통
+  weekly_plus:'주1회+ 병원 방문', biweekly:'격주 병원 방문', monthly:'월1회 병원 방문', irregular_visit:'비정기 병원 방문',
+  first_try:'시술 첫 시도', '1to2':'시술 1~2회', '3plus':'시술 3회 이상', na_prev:'시술 이력 없음',
+  together:'파트너 동반 관리', alone:'개인 관리', undecided:'공유 고민 중',
+  large_center:'대형 난임센터', private_ob:'개인 산부인과', oriental_combo:'한방 병행', other_clinic:'기타 병원',
+  burden_physical:'신체적 부담', burden_emotional:'정서적 부담', burden_financial:'경제적 부담', burden_time:'시간 부담',
+  // C 식단 트랙
+  pre_pregnancy:'임신 준비 체중관리', pcos:'PCOS 관리', general:'생활습관 개선',
+  log_daily:'매일 식단 기록', log_sometimes:'가끔 식단 기록', log_never:'식단 기록 처음',
+  restrict_full:'식품 제한 중', restrict_partial:'일부 식품 제한', restrict_none:'식품 제한 없음',
+  water_under1l:'수분섭취 1L↓', water_1to1_5l:'수분섭취 1~1.5L', water_1_5to2l:'수분섭취 1.5~2L', water_over2l:'수분섭취 2L+',
+  supp_taking:'영양제 복용중', supp_planned:'영양제 예정', supp_none:'영양제 안먹음',
+  // closing
+  '20s':'20대', early30s:'30대 초반', late30s:'30대 후반', '40plus':'40대 이상',
+  device_now:'밴드 즉시 사용', app_first:'앱 우선 체험', no_device:'앱 전용'
+};
+
+let stepIndex = 0;
+let history = [];
+
+// --- 단계/식단 선택에 따라 동적으로 온보딩 흐름을 구성 (5.1) ---
+function buildFlow(a){
+  const flow = [...bufferSteps, stageStep, dietOptInStep, ...sharedPreSteps];
+  if(a.stage){
+    flow.push(...branchQuestions[a.stage]);
+  }
+  if(a.dietTrack === 'yes'){
+    flow.push(dietIntroStep(a.stage), ...dietBranch);
+  }
+  flow.push(...commonSteps);
+  return flow;
+}
+
+function currentStepConfig(){
+  const flow = buildFlow(answers);
+  return flow[stepIndex] || null;
+}
+
+function render(){
+  const content = document.getElementById('content');
+  const backBtn = document.getElementById('backBtn');
+  backBtn.disabled = stepIndex === 0;
+
+  updateRing();
+
+  const cfg = currentStepConfig();
+  if(!cfg){
+    renderResult();
+    return;
+  }
+
+  const resolvedSubtitle = (cfg.subtitle || '').replace('{{nickname}}', answers.nickname ? `${answers.nickname}님` : '고객님');
+
+  if(cfg.type === 'text'){
+    content.innerHTML = `
+      <div class="eyebrow">${cfg.eyebrow}</div>
+      <h1>${cfg.title}</h1>
+      <p class="subtitle">${resolvedSubtitle}</p>
+      <input type="text" id="textInput" class="text-input" placeholder="${cfg.placeholder || ''}" maxlength="12" autocomplete="off" />
+      <button class="cta" id="textNextBtn" style="margin-top:16px;">다음</button>
+      <div class="footer-note">건너뛰어도 괜찮아요</div>
+      <button class="restart" id="textSkipBtn">건너뛰기</button>
+    `;
+    const input = document.getElementById('textInput');
+    input.focus();
+    const advance = ()=>{
+      answers[cfg.key] = input.value.trim() || null;
+      history.push(stepIndex);
+      stepIndex++; render();
+    };
+    document.getElementById('textNextBtn').addEventListener('click', advance);
+    document.getElementById('textSkipBtn').addEventListener('click', ()=>{
+      answers[cfg.key] = null;
+      history.push(stepIndex);
+      stepIndex++; render();
+    });
+    input.addEventListener('keydown', e=>{ if(e.key === 'Enter') advance(); });
+    return;
+  }
+
+  if(cfg.type === 'info'){
+    // 5.3 : 선택한 단계에 맞춰 식단 콘텐츠가 자동 조정된다는 것을 보여주는 안내 스텝
+    content.innerHTML = `
+      <div class="eyebrow">${cfg.eyebrow}</div>
+      <h1>${cfg.title}</h1>
+      <div class="info-card">${cfg.info}</div>
+      <button class="cta" id="infoNextBtn">알겠어요, 계속할게요</button>
+      <div class="footer-note">단계를 나중에 바꾸면 이 콘텐츠도 함께 자동으로 조정돼요</div>
+    `;
+    document.getElementById('infoNextBtn').addEventListener('click', ()=>{
+      history.push(stepIndex);
+      stepIndex++; render();
+    });
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="eyebrow">${cfg.eyebrow}</div>
+    <h1>${cfg.title}</h1>
+    <p class="subtitle">${resolvedSubtitle}</p>
+    <div class="options">
+      ${cfg.options.map(o => `
+        <button class="option" data-value="${o.value}">
+          <span class="option-label">${o.label}</span>
+          ${o.desc ? `<span class="option-desc">${o.desc}</span>` : ''}
+        </button>
+      `).join('')}
+    </div>
+    <div class="footer-note">선택하시면 바로 다음 질문으로 넘어가요</div>
+  `;
+
+  content.querySelectorAll('.option').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const val = btn.dataset.value;
+      answers[cfg.key] = val;
+      history.push(stepIndex);
+      const next = getNextStepIndex(stepIndex, cfg.key, val);
+      setTimeout(()=>{ stepIndex = next; render(); }, 180);
+      btn.classList.add('selected');
+    });
+  });
+}
+
+function getNextStepIndex(current, key, val){
+  // A(자연임신) 분기 · b1 "이전에 임신·출산 경험이 있으신가요?"에서
+  // '이번이 처음이에요'를 선택하면 자녀 수(b2)·터울(b3) 질문을 건너뛰고
+  // 바로 b4 "임신을 시도한 지 얼마나 되셨나요?"로 이동
+  if(key === 'b1' && answers.stage === 'A' && val === 'first'){
+    return current + 3;
+  }
+  return current + 1;
+}
+
+function updateRing(){
+  const ring = document.getElementById('ringFill');
+  const label = document.getElementById('ringLabel');
+  const total = buildFlow(answers).length;
+  const step = Math.min(stepIndex+1, total);
+  const pct = step / total;
+  const circumference = 2 * Math.PI * 14;
+  ring.setAttribute('stroke-dasharray', circumference);
+  ring.setAttribute('stroke-dashoffset', circumference * (1-pct));
+  label.textContent = stepIndex >= total ? '완료' : `${step}/${total}`;
+}
+
+function collectTagKeys(){
+  const keys = ['discover','self_awareness','priority','help_style','dietTrack',
+    'cycle_regular','clinic_visit','medication','b1','b2','b3','b4','b5','b6','b7','b8'];
+  if(answers.dietTrack === 'yes'){
+    keys.push('d1','d2','d3','d4','d5');
+  }
+  keys.push('age','device');
+  return keys;
+}
+
+function renderResult(){
+  const meta = stageMeta[answers.stage] || stageMeta.A;
+  const tags = collectTagKeys().map(k=>answers[k]).filter(Boolean).map(v=>tagLabel[v]||v);
+  const greetName = answers.nickname ? `${answers.nickname}님, ` : '';
+  const dietOn = answers.dietTrack === 'yes';
+
+  document.getElementById('content').innerHTML = `
+    <div class="result">
+      <svg class="cycle-art" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#E9E1F8" stroke-width="6"/>
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#6C4AB6" stroke-width="6"
+          stroke-dasharray="289" stroke-dashoffset="70" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+        <circle cx="60" cy="14" r="5" fill="#8A63D2"/>
+      </svg>
+      <div>
+        <span class="badge">${meta.badge}</span>${dietOn ? '<span class="badge on">식단 트랙(C) ON</span>' : ''}
+      </div>
+      <h1>${greetName}${meta.title}</h1>
+      <p>${meta.desc}${dietOn ? ' 식단 트랙도 함께 켜서 단계별 영양 가이드를 받아보실 수 있어요.' : ''}</p>
+      <div class="tags">
+        ${tags.map(t=>`<span class="tag">${t}</span>`).join('')}
+      </div>
+      <button class="cta" id="startBtn">맞춤 홈 화면으로 시작하기</button>
+      <button class="cta-secondary" id="settingsBtn">⚙️ 단계·식단 트랙 설정 살펴보기</button>
+      <button class="restart" id="restartBtn">처음부터 다시 해보기</button>
+    </div>
+  `;
+  document.getElementById('startBtn').addEventListener('click', ()=>{
+    alert('프로토타입: 여기서 세그먼트별 맞춤 홈 화면으로 연결됩니다.');
+  });
+  document.getElementById('settingsBtn').addEventListener('click', openSettingsSheet);
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    stepIndex = 0; history = [];
+    Object.keys(answers).forEach(k=>answers[k]=null);
+    render();
+  });
+}
+
+// ------------------------------------------------------------------
+// 5.2 단계 전환 지원 + 5.3 식단(C) 트랙 온오프
+// 설정에서 언제든 단계를 재선택할 수 있고, 생체 기록·히스토리는 유지한 채
+// 알림/체크리스트 로직만 전환된다는 것을 보여주는 시트
+// ------------------------------------------------------------------
+const stageOptionsForSettings = [
+  {value:'A', label:'자연임신을 시도하고 있어요', desc:'배란일 예측, 컨디션 기록 중심'},
+  {value:'B1', label:'IUI(인공수정)를 준비/진행 중이에요', desc:'배란유도제 일정, 시술 타이밍 알림'},
+  {value:'B2', label:'IVF(체외수정)를 준비/진행 중이에요', desc:'전 주기 관리, 다수 약물 알림'}
+];
+
+function openSettingsSheet(){
+  const phone = document.getElementById('phone');
+  const overlay = document.createElement('div');
+  overlay.className = 'sheet-overlay';
+  overlay.id = 'settingsOverlay';
+
+  let pendingStage = answers.stage;
+  let pendingDiet = answers.dietTrack === 'yes';
+
+  overlay.innerHTML = `
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h2>단계 · 식단 트랙 설정</h2>
+      <div class="sheet-note">단계를 바꿔도 지금까지 쌓인 생체 기록과 히스토리는 그대로 유지돼요. 알림과 체크리스트 로직만 새 단계에 맞게 전환됩니다.</div>
+
+      <div class="sheet-section-title">현재 임신 준비 단계</div>
+      <div class="options" id="stageOptions">
+        ${stageOptionsForSettings.map(o => `
+          <button class="option${o.value===pendingStage?' selected':''}" data-stage="${o.value}">
+            <span class="option-label">${o.label}</span>
+            <span class="option-desc">${o.desc}</span>
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="sheet-section-title">식단(C) 트랙</div>
+      <div class="toggle-row">
+        <div class="toggle-row-text">
+          <span class="toggle-row-title">식단 트랙 애드온</span>
+          <span class="toggle-row-desc">A/B1/B2 어떤 단계든 언제든 켜고 끌 수 있어요</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="dietToggle" ${pendingDiet ? 'checked' : ''}/>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button class="cta" id="saveSettingsBtn" style="margin-top:20px;">저장하기</button>
+      <button class="restart" id="closeSettingsBtn">닫기</button>
+    </div>
+  `;
+  phone.appendChild(overlay);
+
+  overlay.querySelectorAll('[data-stage]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      pendingStage = btn.dataset.stage;
+      overlay.querySelectorAll('[data-stage]').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  document.getElementById('closeSettingsBtn').addEventListener('click', ()=>overlay.remove());
+
+  document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+    const stageChanged = pendingStage !== answers.stage;
+    const dietChecked = document.getElementById('dietToggle').checked;
+    const dietChanged = dietChecked !== (answers.dietTrack === 'yes');
+
+    answers.stage = pendingStage;
+    answers.dietTrack = dietChecked ? 'yes' : 'no';
+
+    overlay.remove();
+    renderResult();
+
+    if(stageChanged || dietChanged){
+      showToast('변경사항이 저장됐어요. 기록은 그대로 유지되고 알림만 전환돼요.');
+    }
+  });
+}
+
+function showToast(msg){
+  const phone = document.getElementById('phone');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  phone.appendChild(toast);
+  setTimeout(()=>toast.remove(), 2600);
+}
+
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  if(history.length){
+    stepIndex = history.pop();
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
